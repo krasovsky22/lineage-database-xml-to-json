@@ -14,9 +14,11 @@ type RecipePropsType = {
   successRate: number;
 };
 
-type ResultedRecipeFormatType = RecipePropsType & {
+type ResultedRecipeType = RecipePropsType & {
   ingredient: ResultedIngredientType[];
 };
+
+type ResultedRecipeFormatType = Record<number, ResultedRecipeType>;
 
 type ExpectedItemType = {
   attr: RecipePropsType;
@@ -35,12 +37,12 @@ type ExpectedRecipeType = {
 
 export default function parseAndConvertRecipes(
   filePath: string
-): ResultedRecipeFormatType[] {
+): ResultedRecipeFormatType {
   const {
     list: { item: rawRecipes },
   } = parseFile<ExpectedRecipeType>(filePath);
 
-  return rawRecipes.map(({ attr, ingredient }: ExpectedItemType) => {
+  const items = rawRecipes.map(({ attr, ingredient }: ExpectedItemType) => {
     const newIngredients: ResultedIngredientType[] = Array.isArray(ingredient)
       ? ingredient.map(({ attr }: ExpectedIngredientType) => attr)
       : [{ ...ingredient.attr }];
@@ -50,4 +52,11 @@ export default function parseAndConvertRecipes(
       ingredient: newIngredients,
     };
   });
+
+  const result: Record<number, ResultedRecipeType> = {};
+
+  items.forEach((item) => {
+    result[item.id] = item;
+  });
+  return result;
 }
