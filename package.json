@@ -1,0 +1,48 @@
+{
+  "name": "xml-to-json",
+  "version": "0.1.0",
+  "main": "src/index.ts",
+  "description": "xml to json",
+  "scripts": {
+    "build:dev": "webpack --mode development --watch",
+    "watch:build": "tsc -p tsconfig.json -w",
+    "build": "webpack --mode production",
+    "lint": "eslint src/* --ext .ts",
+    "service": "nodemon",
+    "start": "node dist/index.js",
+    "fix": "run-s fix:*",
+    "fix:prettier": "prettier \"src/**/*.ts\" --write",
+    "fix:lint": "eslint src --ext .ts --fix"
+  },
+  "author": "Vlad <vlak_krasovsky@yahoo.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@types/he": "^1.1.1",
+    "fast-xml-parser": "^3.17.4",
+    "he": "^1.2.0"
+  },
+  "prettier": {
+    "singleQuote": true
+  },
+  "devDependencies": {
+    "@types/node": "^14.11.8",
+    "@typescript-eslint/eslint-plugin": "^4.4.0",
+    "@typescript-eslint/parser": "^4.4.0",
+    "dotenv": "^8.2.0",
+    "eslint": "^7.11.0",
+    "eslint-config-airbnb-typescript": "^11.0.0",
+    "eslint-config-prettier": "^6.12.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-sort-keys-fix": "^1.1.1",
+    "eslint-plugin-typescript-sort-keys": "^1.5.0",
+    "nodemon": "^2.0.4",
+    "prettier": "^2.1.2",
+    "ts-loader": "^8.0.4",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.3",
+    "webpack": "^5.0.0",
+    "webpack-cli": "^4.0.0",
+    "webpack-node-externals": "^2.5.2"
+  }
+}
