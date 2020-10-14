@@ -1,3 +1,4 @@
+import { exit } from 'process';
 import parseFile from './FileConverter';
 
 type ItemAttrType = {
@@ -19,9 +20,19 @@ type ParsedItemSet = {
   };
 };
 
+type StatsAttrType = {
+  attr: {
+    stat: string;
+    val: string;
+  };
+};
+
 type ExpectedParsedItemType = {
   attr: ItemAttrType;
   set: ParsedItemSet[] | ParsedItemSet;
+  for: {
+    set: StatsAttrType[] | StatsAttrType;
+  };
 };
 
 type ExpectedParsedItemFileResultType = {
@@ -37,7 +48,7 @@ export default function parseAndConvertItems(
     list: { item: rawItems },
   } = parseFile<ExpectedParsedItemFileResultType>(itemsFilePath);
 
-  const parsedItems = rawItems.map(({ attr, set }) => {
+  const parsedItems = rawItems.map(({ attr, set, for: forAttr }) => {
     const propsAttrResult: ItemAdditionalPropsType = { icon: '', price: 0 };
 
     const setArr = Array.isArray(set) ? set : [set];
@@ -45,6 +56,16 @@ export default function parseAndConvertItems(
     setArr.forEach(({ attr: { name, val } }) =>
       Object.assign(propsAttrResult, { [name]: val })
     );
+
+    if (forAttr && forAttr?.set) {
+      const setFor = forAttr.set;
+
+      const setForAttr = Array.isArray(setFor) ? setFor : [setFor];
+
+      setForAttr.forEach(({ attr }: StatsAttrType) => {
+        Object.assign(propsAttrResult, { [attr.stat]: attr.val });
+      });
+    }
 
     return { ...propsAttrResult, ...attr };
   });
