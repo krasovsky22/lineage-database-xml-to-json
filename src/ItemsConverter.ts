@@ -1,9 +1,5 @@
 import parseFile from './FileConverter';
 
-const ITEM_TYPE_KEY = 'type' as const;
-const ETC_TYPE_VALUE = 'EtcItem' as const;
-const ITEM_ETC_TYPE_KEY = 'etcitem_type' as const;
-
 type ItemAttrType = {
   id: number;
   type: string;
@@ -16,7 +12,7 @@ type ItemAdditionalPropsType = {
   price: number;
 };
 
-type ResultedItemType = ItemAttrType & ItemAdditionalPropsType;
+export type ResultedItemType = ItemAttrType & ItemAdditionalPropsType;
 type ParsedItemSet = {
   attr: {
     name: string;
@@ -45,19 +41,16 @@ type ExpectedParsedItemFileResultType = {
   };
 };
 
-type ResultedCategorizedItemsType = Record<
-  string,
-  Record<number, ResultedItemType>
->;
+
 
 export default function parseAndConvertItems(
   itemsFilePath: string
-): ResultedCategorizedItemsType {
+): ResultedItemType[] {
   const {
     list: { item: rawItems },
   } = parseFile<ExpectedParsedItemFileResultType>(itemsFilePath);
 
-  const parsedItems = rawItems.map(({ attr, set, for: forAttr }) => {
+  return rawItems.map(({ attr, set, for: forAttr }) => {
     const propsAttrResult: ItemAdditionalPropsType = { icon: '', price: 0 };
 
     const setArr = Array.isArray(set) ? set : [set];
@@ -78,29 +71,4 @@ export default function parseAndConvertItems(
 
     return { ...propsAttrResult, ...attr };
   });
-
-  //split into categories and make sure they are unique
-  const categories: string[] = [
-    ...new Set(
-      parsedItems.map((item: ResultedItemType) => item[ITEM_TYPE_KEY])
-    ),
-  ];
-
-  //create new object {weapon: [], armor: [], etc....}
-  const categorizedItemsArr: ResultedCategorizedItemsType = {};
-
-  parsedItems.forEach((item: ResultedItemType) => {
-    const itemType = (item.type === ETC_TYPE_VALUE
-      ? item[ITEM_ETC_TYPE_KEY]
-      : item.type
-    ).toLowerCase();
-
-    if (!categorizedItemsArr[itemType]) {
-      categorizedItemsArr[itemType] = {};
-    }
-
-    categorizedItemsArr[itemType][item.id] = item;
-  });
-
-  return categorizedItemsArr;
 }

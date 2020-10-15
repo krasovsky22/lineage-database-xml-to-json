@@ -1,11 +1,15 @@
 import * as fs from 'fs';
 import path from 'path';
-import parseAndConvertItems from './ItemsConverter';
+import parseAndConvertItems, { ResultedItemType } from './ItemsConverter';
 import parseAndConvertRecipes from './RecipesConverter';
 
 const SOURCE_FOLDER = 'datasource' as const;
 const ITEMS_SOURCE_FOLDER = `datasource/items` as const;
 const RESULT_FOLDER = path.resolve(__dirname, 'output');
+
+const ITEM_TYPE_KEY = 'type' as const;
+const ETC_TYPE_VALUE = 'EtcItem' as const;
+const ITEM_ETC_TYPE_KEY = 'etcitem_type' as const;
 
 //source xml recipe file
 const xmlRecipeFileName = path.resolve(
@@ -24,7 +28,7 @@ const itemsOutputFile = path.resolve(__dirname, RESULT_FOLDER + '/items.json');
 const xmlItemsFolder = path.resolve(__dirname, ITEMS_SOURCE_FOLDER);
 const itemFiles = fs.readdirSync(xmlItemsFolder);
 
-const resultedItems = {};
+let resultedItemsArr: ResultedItemType[] = [];
 itemFiles.forEach((itemFile) => {
   const xmlItemFileName = path.resolve(
     __dirname,
@@ -32,8 +36,33 @@ itemFiles.forEach((itemFile) => {
   );
 
   const parsedItems = parseAndConvertItems(xmlItemFileName);
-  Object.assign(resultedItems, parsedItems);
+  resultedItemsArr = [...resultedItemsArr, ...parsedItems];
 });
+
+type ResultedCategorizedItemsType = Record<
+  string,
+  Record<number, ResultedItemType>
+>;
+
+//split into categories and make sure they are unique
+const resultedItems = resultedItemsArr.reduce(function (
+  categorizedItemsArr: ResultedCategorizedItemsType,
+  item: ResultedItemType
+) {
+  const tempItemType =
+    item.type === ETC_TYPE_VALUE ? item[ITEM_ETC_TYPE_KEY] : item.type;
+
+  const itemType = tempItemType?.toLowerCase() ?? 'unknown';
+
+  if (!categorizedItemsArr.hasOwnProperty(itemType)) {
+    categorizedItemsArr[itemType] = {};
+  }
+
+  Object.assign(categorizedItemsArr[itemType], { [item.id]: item });
+
+  return categorizedItemsArr;
+},
+{});
 
 //parse and convert
 const parsedRecipes = parseAndConvertRecipes(xmlRecipeFileName);
