@@ -38,6 +38,8 @@ itemFiles.forEach((itemFile) => {
 //parse and convert
 const parsedRecipes = parseAndConvertRecipes(xmlRecipeFileName);
 
+//split items into categories they belong for easier search
+
 //make output directory if doesn't exist
 if (!fs.existsSync(RESULT_FOLDER)) {
   fs.mkdirSync(RESULT_FOLDER);

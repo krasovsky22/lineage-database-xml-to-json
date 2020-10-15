@@ -1,9 +1,13 @@
-import { exit } from 'process';
 import parseFile from './FileConverter';
+
+const ITEM_TYPE_KEY = 'type' as const;
+const ETC_TYPE_VALUE = 'EtcItem' as const;
+const ITEM_ETC_TYPE_KEY = 'etcitem_type' as const;
 
 type ItemAttrType = {
   id: number;
   type: string;
+  etcitem_type: string;
   name: string;
 };
 
@@ -41,9 +45,14 @@ type ExpectedParsedItemFileResultType = {
   };
 };
 
+type ResultedCategorizedItemsType = Record<
+  string,
+  Record<number, ResultedItemType>
+>;
+
 export default function parseAndConvertItems(
   itemsFilePath: string
-): Record<number, ResultedItemType> {
+): ResultedCategorizedItemsType {
   const {
     list: { item: rawItems },
   } = parseFile<ExpectedParsedItemFileResultType>(itemsFilePath);
@@ -69,10 +78,29 @@ export default function parseAndConvertItems(
 
     return { ...propsAttrResult, ...attr };
   });
-  const resultItemsArray: Record<number, ResultedItemType> = {};
+
+  //split into categories and make sure they are unique
+  const categories: string[] = [
+    ...new Set(
+      parsedItems.map((item: ResultedItemType) => item[ITEM_TYPE_KEY])
+    ),
+  ];
+
+  //create new object {weapon: [], armor: [], etc....}
+  const categorizedItemsArr: ResultedCategorizedItemsType = {};
+
   parsedItems.forEach((item: ResultedItemType) => {
-    resultItemsArray[item.id] = item;
+    const itemType = (item.type === ETC_TYPE_VALUE
+      ? item[ITEM_ETC_TYPE_KEY]
+      : item.type
+    ).toLowerCase();
+
+    if (!categorizedItemsArr[itemType]) {
+      categorizedItemsArr[itemType] = {};
+    }
+
+    categorizedItemsArr[itemType][item.id] = item;
   });
 
-  return resultItemsArray;
+  return categorizedItemsArr;
 }
